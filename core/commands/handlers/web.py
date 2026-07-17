@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import webbrowser
 
-import pywhatkit
+
 
 from config.settings import CHATGPT_URL, GOOGLE_URL, YOUTUBE_URL
 from core.commands.router import CommandRouter, JarvisContext
