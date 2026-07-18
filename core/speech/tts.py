@@ -36,6 +36,7 @@ class SpeechQueue:
         self._stop_event = threading.Event()
         self._worker = threading.Thread(target=self._run, name="tts-worker", daemon=True)
         self._worker.start()
+        self._engine = pyttsx3.init()
 
     def speak(self, text: str) -> None:
         """Queue text to be spoken. Returns immediately — never blocks the caller."""
@@ -69,15 +70,19 @@ class SpeechQueue:
 
     def _speak_now(self, text: str) -> None:
         try:
-            engine = pyttsx3.init()
-            voices = engine.getProperty("voices")
-            if voices:
-                index = min(VOICE_INDEX, len(voices) - 1)
-                engine.setProperty("voice", voices[index].id)
-            engine.setProperty("rate", TTS_RATE)
-            engine.setProperty("volume", TTS_VOLUME)
-            engine.say(text)
-            engine.runAndWait()
-            engine.stop()
+            voices = self._engine.getProperty("voices")
+            for v in voices:
+                print(f"Voice: {v.name} ({v.id})")
+            voice=self._engine.getProperty("voices")
+            for v in voice:
+                if "english-us" in v.name.lower():
+                    self._engine.setProperty("voice", v.id)
+                    break
+            self._engine.setProperty("rate", TTS_RATE)
+            self._engine.setProperty("volume", TTS_VOLUME)
+            self._engine.say(text)
+            self._engine.runAndWait()
         except Exception:
-            logger.exception("TTS engine failed to speak: %s", text)
+            logger.exception("TTS failed for text: %s", text)
+        finally:
+            self._engine.stop()  # stop any remaining speech in case of error
